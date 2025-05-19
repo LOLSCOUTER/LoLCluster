@@ -1,0 +1,4 @@
+.env
+train_log.txt
+LOLCLUSTER/
+catboost_info/
