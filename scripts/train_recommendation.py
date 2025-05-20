@@ -30,14 +30,28 @@ def create_team_vectors(df):
 def run():
     df = pd.read_csv("LOLCLUSTER/champion_vectors/champion_with_roles.csv")
     team_df = create_team_vectors(df)
+
+    if team_df.empty:
+        print("유효한 팀 데이터가 없습니다. 학습 중단.")
+        return
+
     X = team_df.drop(columns=["label"])
     y = team_df["label"]
 
+    print("학습 데이터 분포:", y.value_counts().to_dict())
+
     model = CatBoostClassifier(verbose=0)
+    start_time = time.time()
     model.fit(X, y)
+    elapsed = time.time() - start_time
 
     os.makedirs("LOLCLUSTER/models", exist_ok=True)
-    with open("LOLCLUSTER/models/team_model.pkl", "wb") as f:
+    model_path = "LOLCLUSTER/models/team_model.pkl"
+
+    if os.path.exists(model_path):
+        os.replace(model_path, model_path.replace(".pkl", "_backup.pkl"))
+
+    with open(model_path, "wb") as f:
         pickle.dump(model, f)
 
     preds = model.predict(X)
@@ -48,7 +62,13 @@ def run():
 
     now = time.strftime('%Y-%m-%d %H:%M:%S')
     with open("train_log.txt", "a", encoding="utf-8") as log:
-        log.write(f"[{now}] acc: {acc:.4f}, f1: {f1:.4f}, precision: {prec:.4f}, recall: {rec:.4f}, data: {len(X)}\n")
+        log.write(
+            f"[{now}] acc: {acc:.4f}, f1: {f1:.4f}, precision: {prec:.4f}, recall: {rec:.4f}, "
+            f"data: {len(X)}, time: {elapsed:.2f}s\n"
+        )
+
+    print(f"모델 학습 및 저장 완료 ({len(X)}개, {elapsed:.2f}s)")
+    print(f"acc: {acc:.4f} | f1: {f1:.4f} | precision: {prec:.4f} | recall: {rec:.4f}")
 
 if __name__ == "__main__":
     run()
