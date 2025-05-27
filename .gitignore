@@ -1,4 +1,7 @@
 .env
-train_log.txt
-LOLCLUSTER/
-catboost_info/
+LOLCLUSTER/data
+LOLCLUSTER/data1
+LOLCLUSTER/champion_vectors
+asada.py
+asdadq4.py
+asdq.py
